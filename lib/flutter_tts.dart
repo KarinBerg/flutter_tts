@@ -142,8 +142,10 @@ class FlutterTts {
       _channel.invokeMethod('awaitSynthCompletion', awaitCompletion);
 
   /// [Future] which invokes the platform specific method for speaking
-  Future<dynamic> speak(String text) async =>
-      _channel.invokeMethod('speak', text);
+  Future<dynamic> speak(String text, String languageCode) async => _channel.invokeMethod('speak', <String, dynamic>{
+        "text": text,
+        "languageCode": languageCode,
+      });
 
   /// [Future] which invokes the platform specific method for pause
   /// ***iOS supported only***
