@@ -245,7 +245,7 @@ public class FlutterTtsPlugin implements MethodCallHandler, FlutterPlugin {
     switch (call.method) {
       case "speak":
         {
-          String text = call.arguments.toString();
+          String text = call.argument("text");
           if (this.speaking) {
             // If TTS is set to queue mode, allow the utterance to be queued up rather than discarded
             if (this.queueMode == TextToSpeech.QUEUE_FLUSH) {
