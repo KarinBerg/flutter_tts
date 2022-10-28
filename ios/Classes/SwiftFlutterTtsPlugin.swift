@@ -119,9 +119,9 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
       }
       self.setVoice(voice: args, result: result)
       break
-    case "setSharedInstance":
-      let sharedInstance = call.arguments as! Bool
-      self.setSharedInstance(sharedInstance: sharedInstance, result: result)
+    case "setIosAudioSession":
+      let audioSessionOn = call.arguments as! Bool
+      self.setIosAudioSession(on: audioSessionOn, result: result)
       break
     case "setIosAudioCategory":
       guard let args = call.arguments as? [String: Any] else {
@@ -293,9 +293,9 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     }
   }
 
-  private func setSharedInstance(sharedInstance: Bool, result: FlutterResult) {
+  private func setIosAudioSession(on: Bool, result: FlutterResult) {
       do {
-          try AVAudioSession.sharedInstance().setActive(sharedInstance)
+          try audioSession.setActive(on)
           result(1)
       } catch {
           result(0)

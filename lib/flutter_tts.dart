@@ -55,7 +55,6 @@ enum IosTextToSpeechAudioCategory {
 
   /// Audio is not silenced by screen lock or silent switch; audio will not mix
   /// with other apps' audio.
-  ///
   playback,
 
   ///  The category for recording (input) and playback (output) of audio,
@@ -181,8 +180,14 @@ class FlutterTts {
 
   /// [Future] which invokes the platform specific method for shared instance
   /// ***iOS supported only***
+  @Deprecated('Use setIosAudioSession instead')
   Future<dynamic> setSharedInstance(bool sharedSession) async =>
-      _channel.invokeMethod('setSharedInstance', sharedSession);
+      _channel.invokeMethod('setIosAudioSession', sharedSession);
+
+  /// [Future] which invokes the platform specific method for activating or deactivating your app’s audio session
+  /// ***iOS supported only***
+  Future<dynamic> setIosAudioSession(bool on) async =>
+      _channel.invokeMethod('setIosAudioSession', on);
 
   /// [Future] which invokes the platform specific method for setting audio category
   /// ***Ios supported only***
