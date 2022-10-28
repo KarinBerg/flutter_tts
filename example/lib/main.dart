@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -16,7 +16,7 @@ enum TtsState { playing, stopped, paused, continued }
 
 class _MyAppState extends State<MyApp> {
   late FlutterTts flutterTts;
-  String? language;
+  String? language = "en-GB";
   String? engine;
   double volume = 0.5;
   double pitch = 1.0;
@@ -116,7 +116,7 @@ class _MyAppState extends State<MyApp> {
 
     if (_newVoiceText != null) {
       if (_newVoiceText!.isNotEmpty) {
-        await flutterTts.speak(_newVoiceText!);
+        await flutterTts.speak(_newVoiceText!, language ?? "en-GB");
       }
     }
   }
