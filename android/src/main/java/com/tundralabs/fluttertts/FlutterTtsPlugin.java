@@ -368,6 +368,7 @@ public class FlutterTtsPlugin implements MethodCallHandler, FlutterPlugin {
         this.silencems = Integer.parseInt(silencems);
         break;
       case "setSharedInstance":
+      case "setIosAudioSession":
         result.success(1);
         break;
       case "isLanguageInstalled":
