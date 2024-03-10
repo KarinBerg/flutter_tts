@@ -321,14 +321,11 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     let options: AVAudioSession.CategoryOptions = audioOptions?.reduce([], { (result, option) -> AVAudioSession.CategoryOptions in
       return result.union(AudioCategoryOptions(rawValue: option)?.toAVAudioSessionCategoryOptions() ?? [])}) ?? []
     do {
-        Logger.viewCycle.info("AVAudioSession.Category is: \(category)")
-        Logger.viewCycle.info("AVAudioSession.CategoryOptions are: \(options)")
         if #available(iOS 12.0, *) {
             if audioMode == nil {
                 try audioSession.setCategory(category, options: options)
             } else {
                 let mode: AVAudioSession.Mode? = AudioModes(rawValue: audioMode ?? "")?.toAVAudioSessionMode() ?? AVAudioSession.Mode.default
-                Logger.viewCycle.info("AVAudioSession.Mode is: \(mode)")
                 try audioSession.setCategory(category, mode: mode!, options: options)
             }
         } else {
@@ -410,14 +407,10 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     }
     options.remove(.mixWithOthers)
 
-    Logger.viewCycle.info("AVAudioSession.CategoryOptions for shouldDeactivateAndNotifyOthers are: \(options)")
-    let result = !options.isDisjoint(with: session.categoryOptions)
-    Logger.viewCycle.info("isNotDisjoint: \(result)")
-    return result
+    return !options.isDisjoint(with: session.categoryOptions)
   }
 
   public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-    Logger.viewCycle.info("self.autoStopSharedSession: \(self.autoStopSharedSession)")
     if shouldDeactivateAndNotifyOthers(audioSession) && self.autoStopSharedSession {
       do {
         try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
