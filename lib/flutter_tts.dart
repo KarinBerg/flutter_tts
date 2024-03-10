@@ -389,8 +389,16 @@ class FlutterTts {
 
   /// [Future] which invokes the platform specific method for shared instance
   /// ***iOS supported only***
+  @Deprecated('Use setIosSessionActive instead')
   Future<dynamic> setSharedInstance(bool sharedSession) async =>
       await _channel.invokeMethod('setSharedInstance', sharedSession);
+
+  /// [Future] which invokes the platform specific method to activate the
+  /// AVAudioSession with the configured category, options, and mode.
+  /// For more details see https://developer.apple.com/library/archive/documentation/Audio/Conceptual/AudioSessionProgrammingGuide/ConfiguringanAudioSession/ConfiguringanAudioSession.html#//apple_ref/doc/uid/TP40007875-CH2-SW5
+  /// ***iOS supported only***
+  Future<dynamic> setIosAudioSessionActive(bool active) async =>
+      await _channel.invokeMethod('setIosAudioSessionActive', active);
 
   /// [Future] which invokes the platform specific method for setting the autoStopSharedSession
   /// default value is true
