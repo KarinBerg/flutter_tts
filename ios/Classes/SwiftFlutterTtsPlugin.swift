@@ -407,7 +407,9 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     }
     options.remove(.mixWithOthers)
 
-    return !options.isDisjoint(with: session.categoryOptions)
+    let result = !options.isDisjoint(with: session.categoryOptions)
+    NSLog("shouldDeactivateAndNotifyOthers: \(result)")
+    return result
   }
 
   public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
