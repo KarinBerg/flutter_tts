@@ -19,7 +19,7 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
   var autoStopSharedSession: Bool = true
   var speakResult: FlutterResult? = nil
   var synthResult: FlutterResult? = nil
-    
+
 
   var channel = FlutterMethodChannel()
   lazy var audioSession = AVAudioSession.sharedInstance()
@@ -46,7 +46,13 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     switch call.method {
     case "speak":
       let text: String = call.arguments as! String
-      self.speak(text: text, result: result)
+      if self.language.starts(with: "de") {
+        // Convert numbers into written words to avoid the 'Homograph' problem.
+        let convertedText = spelloutNumbers(originalText: text)
+        self.speak(text: convertedText, result: result)
+      } else {
+        self.speak(text: text, result: result)
+      }
       break
     case "awaitSpeakCompletion":
       self.awaitSpeakCompletion = call.arguments as! Bool
@@ -131,6 +137,34 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  private func spelloutNumbers(originalText: String) -> String {
+      Logger.viewCycle.info("originalText is: \(originalText)")
+
+      let formatter = NumberFormatter()
+      formatter.locale = Locale(identifier: "de-DE")
+      formatter.numberStyle = .spellOut
+
+      let newText = originalText
+      let floatingPointRegex = try? NSRegularExpression(pattern: "[0-9]+(?:[.,][0-9]+)*")
+      let matches = floatingPointRegex?.matches(in: newText, range: NSRange(newText.startIndex..., in: newText))
+
+      if (matches?.count == 0) {
+          return originalText
+      }
+
+      let numbersAsStrings = matches.map { String(newText[Range($0[0].range, in: newText)!]) }
+
+      let correctedFPFormat = numbersAsStrings!.replacingOccurrences(of: ",", with: ".")
+      let number = NSNumber(floatLiteral: Double(correctedFPFormat) ?? 0)
+      let numberStringFull = formatter.string(from: number)
+      if (numbersAsStrings != nil) {
+          let convertedText = originalText.replacingOccurrences(of: numbersAsStrings!, with: numberStringFull!)
+          Logger.viewCycle.info("convertedText is: \(convertedText)")
+          return convertedText
+      }
+      return originalText
   }
 
   private func speak(text: String, result: @escaping FlutterResult) {
