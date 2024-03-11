@@ -162,8 +162,10 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
 
       let correctedFPFormat = numbersAsStrings!.replacingOccurrences(of: ",", with: ".")
       let number = NSNumber(floatLiteral: Double(correctedFPFormat) ?? 0)
-      let numberStringFull = formatter.string(from: number)
+      var numberStringFull = formatter.string(from: number)
       if (numbersAsStrings != nil) {
+          // Add a space before the number as text to improve the spelling of street names like "L1353" (we don't want "Leintausenddreihundertunddreiundfünfzig")
+          numberStringFull = " " + numberStringFull!
           let convertedText = originalText.replacingOccurrences(of: numbersAsStrings!, with: numberStringFull!)
           Logger.viewCycle.info("convertedText is: \(convertedText)")
           return convertedText
@@ -333,7 +335,7 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
         }
       result(1)
     } catch {
-      print(error)
+      print("Setting category failed. \(error.localizedDescription)")
       result(0)
     }
   }
