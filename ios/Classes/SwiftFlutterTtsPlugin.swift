@@ -144,33 +144,47 @@ public class SwiftFlutterTtsPlugin: NSObject, FlutterPlugin, AVSpeechSynthesizer
   }
 
   private func spelloutNumbers(originalText: String) -> String {
-      Logger.viewCycle.info("originalText is: \(originalText)")
+      NSLog("Original text is: \(originalText)")
 
+      // Find all numbers in the original text
+      let floatingPointRegex = try? NSRegularExpression(pattern: "[0-9]+(?:[.,][0-9]+)*")
+      let matches = floatingPointRegex?.matches(in: originalText, range: NSRange(originalText.startIndex..., in: originalText))
+      if (matches == nil || matches?.count == 0) {
+          return originalText
+      }
+
+      // Extract the numbers from the original text
+      var searchResults: [String] = [];
+      matches!.forEach { match in
+        searchResults.append(String(originalText[Range(match.range, in: originalText)!]))
+      }
+
+      // Configure the formatter to convert a number in digits into a spellout number written as letters
       let formatter = NumberFormatter()
       formatter.locale = Locale(identifier: "de-DE")
       formatter.numberStyle = .spellOut
 
-      let newText = originalText
-      let floatingPointRegex = try? NSRegularExpression(pattern: "[0-9]+(?:[.,][0-9]+)*")
-      let matches = floatingPointRegex?.matches(in: newText, range: NSRange(newText.startIndex..., in: newText))
-
-      if (matches?.count == 0) {
-          return originalText
+      var convertedText = originalText
+      for numberInDigits in searchResults {
+        NSLog("Number to convert: \(numberInDigits)")
+        // Convert decimal point values with , into . to be able to convert it to a Double
+        let correctedFPFormat = numberInDigits.replacingOccurrences(of: ",", with: ".")
+        // Convert to Double
+        guard let numberAsDouble = Double(correctedFPFormat) else {
+          continue
+        }
+        // Convert a number in digits into a spellout number written as letters
+        guard var numberAsLetters = formatter.string(from: NSNumber(floatLiteral: numberAsDouble)) else {
+          continue
+        }
+        // Add a space before the number as text to improve the spelling of street names like "L1353" (we don't want "Leintausenddreihundertunddreiundfünfzig")
+        NSLog("Number in letters: \(numberAsLetters)")
+        numberAsLetters = " " + numberAsLetters
+        // Replace the number as digits in the original text with the number as letters
+        convertedText = convertedText.replacingOccurrences(of: numberInDigits, with: numberAsLetters)
       }
-
-      let numbersAsStrings = matches.map { String(newText[Range($0[0].range, in: newText)!]) }
-
-      let correctedFPFormat = numbersAsStrings!.replacingOccurrences(of: ",", with: ".")
-      let number = NSNumber(floatLiteral: Double(correctedFPFormat) ?? 0)
-      var numberStringFull = formatter.string(from: number)
-      if (numbersAsStrings != nil) {
-          // Add a space before the number as text to improve the spelling of street names like "L1353" (we don't want "Leintausenddreihundertunddreiundfünfzig")
-          numberStringFull = " " + numberStringFull!
-          let convertedText = originalText.replacingOccurrences(of: numbersAsStrings!, with: numberStringFull!)
-          Logger.viewCycle.info("convertedText is: \(convertedText)")
-          return convertedText
-      }
-      return originalText
+      NSLog("Converted original text: \(convertedText)")
+      return convertedText
   }
 
   private func speak(text: String, result: @escaping FlutterResult) {
