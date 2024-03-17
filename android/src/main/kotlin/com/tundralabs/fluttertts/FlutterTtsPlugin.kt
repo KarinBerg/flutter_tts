@@ -405,6 +405,8 @@ class FlutterTtsPlugin : MethodCallHandler, FlutterPlugin {
 
             "setIosAudioSessionActive" -> result.success(1)
 
+            "autoStopSharedSession" -> result.success(1)
+
             "isLanguageInstalled" -> {
                 val language: String = call.arguments.toString()
                 result.success(isLanguageInstalled(language))
