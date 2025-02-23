@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -28,10 +28,10 @@ class _MyAppState extends State<MyApp> {
 
   TtsState ttsState = TtsState.stopped;
 
-  get isPlaying => ttsState == TtsState.playing;
-  get isStopped => ttsState == TtsState.stopped;
-  get isPaused => ttsState == TtsState.paused;
-  get isContinued => ttsState == TtsState.continued;
+  bool get isPlaying => ttsState == TtsState.playing;
+  bool get isStopped => ttsState == TtsState.stopped;
+  bool get isPaused => ttsState == TtsState.paused;
+  bool get isContinued => ttsState == TtsState.continued;
 
   bool get isIOS => !kIsWeb && Platform.isIOS;
   bool get isAndroid => !kIsWeb && Platform.isAndroid;
@@ -44,7 +44,7 @@ class _MyAppState extends State<MyApp> {
     initTts();
   }
 
-  initTts() {
+  dynamic initTts() {
     flutterTts = FlutterTts();
 
     _setAwaitOptions();
@@ -60,14 +60,6 @@ class _MyAppState extends State<MyApp> {
         ttsState = TtsState.playing;
       });
     });
-
-    if (isAndroid) {
-      flutterTts.setInitHandler(() {
-        setState(() {
-          print("TTS Initialized");
-        });
-      });
-    }
 
     flutterTts.setCompletionHandler(() {
       setState(() {
@@ -109,21 +101,21 @@ class _MyAppState extends State<MyApp> {
 
   Future<dynamic> _getEngines() async => await flutterTts.getEngines;
 
-  Future _getDefaultEngine() async {
+  Future<void> _getDefaultEngine() async {
     var engine = await flutterTts.getDefaultEngine;
     if (engine != null) {
       print(engine);
     }
   }
 
-  Future _getDefaultVoice() async {
+  Future<void> _getDefaultVoice() async {
     var voice = await flutterTts.getDefaultVoice;
     if (voice != null) {
       print(voice);
     }
   }
 
-  Future _speak() async {
+  Future<void> _speak() async {
     await flutterTts.setVolume(volume);
     await flutterTts.setSpeechRate(rate);
     await flutterTts.setPitch(pitch);
@@ -135,16 +127,16 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future _setAwaitOptions() async {
+  Future<void> _setAwaitOptions() async {
     await flutterTts.awaitSpeakCompletion(true);
   }
 
-  Future _stop() async {
+  Future<void> _stop() async {
     var result = await flutterTts.stop();
     if (result == 1) setState(() => ttsState = TtsState.stopped);
   }
 
-  Future _pause() async {
+  Future<void> _pause() async {
     var result = await flutterTts.pause();
     if (result == 1) setState(() => ttsState = TtsState.paused);
   }
@@ -155,11 +147,12 @@ class _MyAppState extends State<MyApp> {
     flutterTts.stop();
   }
 
-  List<DropdownMenuItem<String>> getEnginesDropDownMenuItems(dynamic engines) {
+  List<DropdownMenuItem<String>> getEnginesDropDownMenuItems(
+      List<dynamic> engines) {
     var items = <DropdownMenuItem<String>>[];
     for (dynamic type in engines) {
       items.add(DropdownMenuItem(
-          value: type as String?, child: Text(type as String)));
+          value: type as String?, child: Text((type as String))));
     }
     return items;
   }
@@ -173,11 +166,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<DropdownMenuItem<String>> getLanguageDropDownMenuItems(
-      dynamic languages) {
+      List<dynamic> languages) {
     var items = <DropdownMenuItem<String>>[];
     for (dynamic type in languages) {
       items.add(DropdownMenuItem(
-          value: type as String?, child: Text(type as String)));
+          value: type as String?, child: Text((type as String))));
     }
     return items;
   }
@@ -230,21 +223,23 @@ class _MyAppState extends State<MyApp> {
           future: _getEngines(),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.hasData) {
-              return _enginesDropDownSection(snapshot.data);
+              return _enginesDropDownSection(snapshot.data as List<dynamic>);
             } else if (snapshot.hasError) {
               return Text('Error loading engines...');
-            } else
+            } else {
               return Text('Loading engines...');
+            }
           });
-    } else
+    } else {
       return Container(width: 0, height: 0);
+    }
   }
 
   Widget _futureBuilder() => FutureBuilder<dynamic>(
       future: _getLanguages(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          return _languageDropDownSection(snapshot.data);
+          return _languageDropDownSection(snapshot.data as List<dynamic>);
         } else if (snapshot.hasError) {
           return Text('Error loading languages...');
         } else
@@ -279,7 +274,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Widget _enginesDropDownSection(dynamic engines) => Container(
+  Widget _enginesDropDownSection(List<dynamic> engines) => Container(
         padding: EdgeInsets.only(top: 50.0),
         child: DropdownButton(
           value: engine,
@@ -288,7 +283,7 @@ class _MyAppState extends State<MyApp> {
         ),
       );
 
-  Widget _languageDropDownSection(dynamic languages) => Container(
+  Widget _languageDropDownSection(List<dynamic> languages) => Container(
       padding: EdgeInsets.only(top: 10.0),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         DropdownButton(
@@ -354,7 +349,7 @@ class _MyAppState extends State<MyApp> {
         min: 0.0,
         max: 1.0,
         divisions: 10,
-        label: "Volume: $volume");
+        label: "Volume: ${volume.toStringAsFixed(1)}");
   }
 
   Widget _pitch() {
@@ -366,7 +361,7 @@ class _MyAppState extends State<MyApp> {
       min: 0.5,
       max: 2.0,
       divisions: 15,
-      label: "Pitch: $pitch",
+      label: "Pitch: ${pitch.toStringAsFixed(1)}",
       activeColor: Colors.red,
     );
   }
@@ -380,7 +375,7 @@ class _MyAppState extends State<MyApp> {
       min: 0.0,
       max: 1.0,
       divisions: 10,
-      label: "Rate: $rate",
+      label: "Rate: ${rate.toStringAsFixed(1)}",
       activeColor: Colors.green,
     );
   }

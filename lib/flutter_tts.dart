@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-typedef void ErrorHandler(dynamic message);
+typedef ErrorHandler = void Function(dynamic message);
 typedef ProgressHandler = void Function(
     String text, int start, int end, String word);
 
@@ -327,11 +327,9 @@ class SpeechRateValidRange {
 
 // Provides Platform specific TTS services (Android: TextToSpeech, IOS: AVSpeechSynthesizer)
 class FlutterTts {
-  static const MethodChannel _channel = const MethodChannel('flutter_tts');
+  static const MethodChannel _channel = MethodChannel('flutter_tts');
 
   VoidCallback? startHandler;
-  VoidCallback? initHandler;
-  VoidCallback? _setEngineInitHandler;
   VoidCallback? completionHandler;
   VoidCallback? pauseHandler;
   VoidCallback? continueHandler;
@@ -353,8 +351,16 @@ class FlutterTts {
       await _channel.invokeMethod('awaitSynthCompletion', awaitCompletion);
 
   /// [Future] which invokes the platform specific method for speaking
-  Future<dynamic> speak(String text) async =>
-      await _channel.invokeMethod('speak', text);
+  Future<dynamic> speak(String text, {bool focus = false}) async {
+    if (!kIsWeb && Platform.isAndroid) {
+      return await _channel.invokeMethod('speak', <String, dynamic>{
+        "text": text,
+        "focus": focus,
+      });
+    } else {
+      return await _channel.invokeMethod('speak', text);
+    }
+  }
 
   /// [Future] which invokes the platform specific method for pause
   Future<dynamic> pause() async => await _channel.invokeMethod('pause');
@@ -367,10 +373,12 @@ class FlutterTts {
 
   /// [Future] which invokes the platform specific method for synthesizeToFile
   /// ***Android and iOS supported only***
-  Future<dynamic> synthesizeToFile(String text, String fileName) async =>
+  Future<dynamic> synthesizeToFile(String text, String fileName,
+          [bool isFullPath = false]) async =>
       _channel.invokeMethod('synthesizeToFile', <String, dynamic>{
         "text": text,
         "fileName": fileName,
+        "isFullPath": isFullPath,
       });
 
   /// [Future] which invokes the platform specific method for setLanguage
@@ -462,10 +470,7 @@ class FlutterTts {
   /// [Future] which invokes the platform specific method for setEngine
   /// ***Android supported only***
   Future<dynamic> setEngine(String engine) async {
-    final initCompleter = Completer<void>();
-    _setEngineInitHandler = () => initCompleter.complete();
     await _channel.invokeMethod('setEngine', engine);
-    await initCompleter.future;
   }
 
   /// [Future] which invokes the platform specific method for setPitch
@@ -477,6 +482,10 @@ class FlutterTts {
   /// ***Android, iOS, and macOS supported only***
   Future<dynamic> setVoice(Map<String, String> voice) async =>
       await _channel.invokeMethod('setVoice', voice);
+
+  /// [Future] which resets the platform voice to the default
+  Future<dynamic> clearVoice() async =>
+      await _channel.invokeMethod('clearVoice');
 
   /// [Future] which invokes the platform specific method for stop
   Future<dynamic> stop() async => await _channel.invokeMethod('stop');
@@ -546,8 +555,8 @@ class FlutterTts {
     final normal = double.parse(validRange['normal'].toString());
     final max = double.parse(validRange['max'].toString());
     final platformStr = validRange['platform'].toString();
-    final platform = TextToSpeechPlatform.values
-        .firstWhere((e) => describeEnum(e) == platformStr);
+    final platform =
+        TextToSpeechPlatform.values.firstWhere((e) => e.name == platformStr);
 
     return SpeechRateValidRange(min, normal, max, platform);
   }
@@ -568,11 +577,6 @@ class FlutterTts {
 
   void setStartHandler(VoidCallback callback) {
     startHandler = callback;
-  }
-
-  /// ***Android supported only***
-  void setInitHandler(VoidCallback callback) {
-    initHandler = callback;
   }
 
   void setCompletionHandler(VoidCallback callback) {
@@ -600,7 +604,7 @@ class FlutterTts {
   }
 
   /// Platform listeners
-  Future platformCallHandler(MethodCall call) async {
+  Future<dynamic> platformCallHandler(MethodCall call) async {
     switch (call.method) {
       case "speak.onStart":
         if (startHandler != null) {
@@ -608,15 +612,6 @@ class FlutterTts {
         }
         break;
 
-      /// ***Android supported only***
-      case "tts.init":
-        if (initHandler != null) {
-          initHandler!();
-        }
-        if (_setEngineInitHandler != null) {
-          _setEngineInitHandler!();
-        }
-        break;
       case "synth.onStart":
         if (startHandler != null) {
           startHandler!();
@@ -669,7 +664,11 @@ class FlutterTts {
         }
         break;
       default:
-        print('Unknowm method ${call.method}');
+        print('Unknown method ${call.method}');
     }
+  }
+
+  Future<void> setAudioAttributesForNavigation() async {
+    await _channel.invokeMethod('setAudioAttributesForNavigation');
   }
 }

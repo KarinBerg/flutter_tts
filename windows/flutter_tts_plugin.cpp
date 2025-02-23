@@ -15,7 +15,7 @@ typedef std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> FlutterR
 
 std::unique_ptr<flutter::MethodChannel<>> methodChannel;
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
 #include <winrt/Windows.Media.SpeechSynthesis.h>
 #include <winrt/Windows.Media.Playback.h>
 #include <winrt/Windows.Media.Core.h>
@@ -151,6 +151,22 @@ namespace {
 				flutter::EncodableMap voiceInfo;
 				voiceInfo[flutter::EncodableValue("locale")] = to_string(voice.Language());
 				voiceInfo[flutter::EncodableValue("name")] = to_string(voice.DisplayName());
+				//  Convert VoiceGender to string
+				std::string gender;
+				switch (voice.Gender()) {
+					case VoiceGender::Male:
+						gender = "male";
+						break;
+					case VoiceGender::Female:
+						gender = "female";
+						break;
+					default:
+						gender = "unknown";
+						break;
+				}
+				voiceInfo[flutter::EncodableValue("gender")] = gender; 
+				// Identifier example "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech_OneCore\Voices\Tokens\MSTTS_V110_enUS_MarkM"
+				voiceInfo[flutter::EncodableValue("identifier")] = to_string(voice.Id());
 				voices.push_back(flutter::EncodableMap(voiceInfo));
 			});
 	}
@@ -418,6 +434,7 @@ namespace {
 		hr = cpEnum->GetCount(&ulCount);
 		if (FAILED(hr)) { result->Success(0); return; }
 		ISpObjectToken* cpVoiceToken = NULL;
+		bool success = false;
 		while (ulCount--)
 		{
 			cpVoiceToken = NULL;
@@ -437,13 +454,14 @@ namespace {
             LCIDToLocaleName((LCID)std::strtol(CW2A(psz), NULL, 16), locale, 25, 0);
             ::CoTaskMemFree(psz);
             std::string language = CW2A(locale);
-			if (name == voiceLanguage && language == voiceLanguage)
+			if (name == voiceName && language == voiceLanguage)
 			{
 				pVoice->SetVoice(cpVoiceToken);
+				success = true;
 			}
 			cpVoiceToken->Release();
 		}
-		result->Success(1);
+		result->Success(success ? 1 : 0);
 	}
 	void FlutterTtsPlugin::getLanguages(flutter::EncodableList& languages)
 	{
@@ -605,7 +623,7 @@ namespace {
 				const flutter::EncodableMap voiceInfo = std::get<flutter::EncodableMap>(arg);
 				std::string voiceLanguage = "";
 				std::string voiceName = "";
-				auto voiceLanguage_it = voiceInfo.find(flutter::EncodableValue("locle"));
+				auto voiceLanguage_it = voiceInfo.find(flutter::EncodableValue("locale"));
 				if (voiceLanguage_it != voiceInfo.end()) voiceLanguage = std::get<std::string>(voiceLanguage_it->second);
 				auto voiceName_it = voiceInfo.find(flutter::EncodableValue("name"));
 				if (voiceName_it != voiceInfo.end()) voiceName = std::get<std::string>(voiceName_it->second);

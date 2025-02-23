@@ -1,5 +1,70 @@
 # ChangeLog
 
+## 4.2.2
+
+### Fixes
+
+- **Web:** Fixing setLanguage on iOS browsers
+
+## 4.2.1
+
+### Fixes
+
+- **iOS:** speeding up iOS plugin initialization
+- **Android:** Fixes npe on plugin initialization
+
+## 4.2.0
+
+### Features
+
+- **Windows:** Added extra metadata for voices
+- **Web:** Added progress events using onboundary
+
+## 4.1.0
+
+### Fixes
+
+- **Windows:** Fixes setvoices
+- **iOS:** Fixes exported audio having the wrong sampleRate on ios 18
+- **Android:** Fixes 'Reply already submitted' bug during synthesizeToFile
+
+### Features
+
+- **Android:** Added AudioFocus and Audio Attributes For Navigation
+- **Android/iOS/macOS:** Added extra metadata for voices
+- **Web:** Migrated js_interop to support WASM
+- **Android/iOS:** Improving synthesizeToFile
+
+## 4.0.2
+
+### Fixes
+
+- **Package:** using recommended static analysis and fixing issues from analyze
+- **Package:** Upating android example to use declarative plugins block
+
+## 4.0.1
+
+### Fixes
+
+- **Android:** Fixing synthesizeToFile
+
+## 4.0.0
+
+### Features
+
+- **iOS:** Add clear selected voice
+- **Android:** Add clear selected voice
+- **Android:** Upgrade to Kotlin 1.9.10
+- **Android:** Upgrade Gradle to 8.2.0
+- **Android:** Change compileSDK target to 34
+
+### Fixes
+
+- **Android:** Fix TTS initialization (removed setInitHandler)
+- **Web:** Fix pause
+- **Package:** Fix describeEnum deprecation (requires Flutter SDK >=2.15.0)
+- **Package:** Remove unnecessary foundation.dart include
+
 ## 3.8.5
 
 ### Fixes
